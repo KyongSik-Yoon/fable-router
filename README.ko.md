@@ -20,8 +20,22 @@
 
 ## 설치
 
-```bash
-ln -s "$(pwd)" ~/.claude/skills/fable-router
+### Claude Code (플러그인 마켓플레이스)
+
 ```
+/plugin marketplace add KyongSik-Yoon/fable-router
+/plugin install fable-router@fable-router
+```
+
+### 수동 설치
+
+```bash
+git clone https://github.com/KyongSik-Yoon/fable-router
+ln -s "$(pwd)/fable-router/skills/fable-router" ~/.claude/skills/fable-router
+```
+
+### Claude Desktop / claude.ai
+
+설정 → Capabilities → Skills에서 `skills/fable-router` 폴더(또는 zip)를 업로드.
 
 이후 `/fable-router`로 호출. 명시 호출 시에만 활성화된다.

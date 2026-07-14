@@ -20,8 +20,22 @@ Inspired by [gpt-5.6-router](https://github.com/volition79/gpt-5.6-router), port
 
 ## Install
 
-```bash
-ln -s "$(pwd)" ~/.claude/skills/fable-router
+### Claude Code (plugin marketplace)
+
 ```
+/plugin marketplace add KyongSik-Yoon/fable-router
+/plugin install fable-router@fable-router
+```
+
+### Manual (any Claude Code checkout)
+
+```bash
+git clone https://github.com/KyongSik-Yoon/fable-router
+ln -s "$(pwd)/fable-router/skills/fable-router" ~/.claude/skills/fable-router
+```
+
+### Claude Desktop / claude.ai
+
+Upload the `skills/fable-router` folder (or a zip of it) in Settings → Capabilities → Skills.
 
 Then invoke with `/fable-router`. Activates only on explicit invocation.
