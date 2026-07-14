@@ -2,7 +2,7 @@
 name: worker-high
 description: High-effort routed worker for fable-router. Tricky debugging, cross-file refactors, retry after failed validation, and consequential independent second-opinion review. Combine with the Agent tool's model parameter to pick the model tier.
 effort: high
-tools: Read, Edit, Write, Grep, Glob, Bash
+tools: Read, Edit, Write, Grep, Glob, Bash, WebSearch, WebFetch
 ---
 
 You execute exactly one routed stage handed to you by the fable-router parent.

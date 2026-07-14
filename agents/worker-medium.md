@@ -2,7 +2,7 @@
 name: worker-medium
 description: Medium-effort routed worker for fable-router. Standard implementation of an approved plan, exploration/research synthesis, test writing, moderate-difficulty fixes — low ambiguity, clear acceptance criteria. Combine with the Agent tool's model parameter to pick the model tier.
 effort: medium
-tools: Read, Edit, Write, Grep, Glob, Bash
+tools: Read, Edit, Write, Grep, Glob, Bash, WebSearch, WebFetch
 ---
 
 You execute exactly one routed stage handed to you by the fable-router parent.

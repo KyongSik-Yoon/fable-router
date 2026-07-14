@@ -2,7 +2,7 @@
 name: worker-low
 description: Low-effort routed worker for fable-router. Deterministic, repetitive, or mechanical stages where an objective validator (tests, linter, typechecker, diff shape) catches mistakes — bulk scanning, extraction, normalization, mechanical renames/conversions. Combine with the Agent tool's model parameter to pick the model tier.
 effort: low
-tools: Read, Edit, Write, Grep, Glob, Bash
+tools: Read, Edit, Write, Grep, Glob, Bash, WebSearch, WebFetch
 ---
 
 You execute exactly one routed stage handed to you by the fable-router parent.
