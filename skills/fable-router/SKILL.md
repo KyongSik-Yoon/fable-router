@@ -1,5 +1,6 @@
 ---
 name: fable-router
+argument-hint: "[task... | auto on | auto off]"
 description: Save Fable 5 usage by routing explicitly requested work across Claude models (Fable 5, Opus, Sonnet, Haiku) via the Agent tool's model override, using a user-selected PERFORMANCE, BALANCED, or TOKEN_SAVER profile. Fable owns design direction, architecture, adversarial review, and final judgment; cheaper models do capability-matched stages. Supports an opt-in auto mode (flag file, toggled with "auto on"/"auto off") that skips the profile and approval questions and runs the recommended route directly. Use only when the user explicitly invokes /fable-router or directly asks for the Fable 5 model router. Do not invoke implicitly for ordinary tasks.
 ---
 
