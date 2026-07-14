@@ -31,14 +31,14 @@ Use Explore/cavecrew-investigator subagents (model: haiku or sonnet) for this di
 
 1. Express the task as a small dependency graph: analysis, research, design, implementation, deterministic transformation, verification, final judgment — as applicable.
 2. For any user-facing product/UI work, decide whether a design stage exists. If so, assign design direction and subjective design acceptance to Fable (the parent, in-context — never a subagent's guess).
-3. Assign the lowest-cost model that satisfies each remaining stage's capability and risk floor.
+3. Assign the lowest-cost model that satisfies each remaining stage's capability and risk floor, and the lowest reasoning effort that its ambiguity and consequence allow (see Effort Floors).
 4. The parent Fable is already an active capability — do not duplicate its planning or integration in a subagent unless independent review has explicit value.
 5. Prefer one agent. Add agents only for: independent evidence, disjoint parallel work, deterministic volume, or consequential independent review.
 6. Keep context packets narrow: each subagent gets only its role contract, objective, required evidence (file paths, not dumps), allowed write surface, non-goals, validation command, and output shape.
-7. Escalate Haiku → Sonnet → Opus → Fable when ambiguity, failed validation, conflicting evidence, or higher consequence appears. One escalation retry per stage before pulling the stage back into the parent.
+7. Escalate on ambiguity, failed validation, conflicting evidence, or higher consequence — cheapest step first: raise effort within the same model (low → medium → high) before raising the model (Haiku → Sonnet → Opus → Fable). One escalation retry per stage before pulling the stage back into the parent.
 8. Compare the route with Fable-direct. If delegation lacks a credible advantage for the selected profile, recommend Fable-direct and say why.
 
-Mechanics: spawn via the Agent tool with an explicit `model` parameter (`haiku`, `sonnet`, `opus`; omit = inherit Fable — never omit for a routed stage). Use `subagent_type` that fits the stage: `Explore` for search, `general-purpose` for implementation, `caveman:cavecrew-*` when their scope fits (their compressed output further cuts parent input tokens). Parallel independent stages go in one message. Use `isolation: "worktree"` only when agents mutate files in parallel.
+Mechanics: spawn via the Agent tool with an explicit `model` parameter (`haiku`, `sonnet`, `opus`; omit = inherit Fable — never omit for a routed stage). The Agent tool has no per-call effort parameter; effort comes from the agent definition, so route effort by choosing `subagent_type`: `fable-router:worker-low`, `fable-router:worker-medium`, or `fable-router:worker-high` (this plugin ships them; model × effort compose freely via the `model` parameter). For stages those don't fit, other types still work — `Explore` for search, `caveman:cavecrew-*` when their scope fits — but they inherit session effort. Parallel independent stages go in one message. Use `isolation: "worktree"` only when agents mutate files in parallel.
 
 ## Capability Floors
 
@@ -49,6 +49,16 @@ Mechanics: spawn via the Agent tool with an explicit `model` parameter (`haiku`,
 
 Never assign Haiku: source-of-truth selection, design decisions, architecture, ambiguity resolution, destructive decisions, or final sufficiency review. Profiles may reduce context or duplicate review — never the Fable design/judgment floor.
 
+## Effort Floors
+
+Effort is an axis orthogonal to model choice; pick both per stage.
+
+- **low** — deterministic or repetitive work where an objective validator (tests, linter, typechecker, countable diff) catches mistakes: bulk scanning, extraction, mechanical conversions.
+- **medium** — standard implementation of an approved plan, research synthesis, test writing: low ambiguity, clear acceptance criteria. Default when unsure between low and medium.
+- **high** — tricky debugging, cross-file refactors, retries after failed validation, consequential independent review.
+
+Rules: a stage with no deterministic validator never gets `low`. TOKEN_SAVER prefers the lowest effort whose floor holds — do not spend `sonnet` + `medium` where `haiku` + `low` with a validator suffices; PERFORMANCE may raise review stages to `high` but still never lowers a floor.
+
 ## Estimate Effects Honestly
 
 Report Fable-direct-relative estimates for output quality, elapsed time, token cost, and regression risk using directional values (`lower`/`similar`/`higher`) plus evidence and uncertainty. Use numbers only from measured history or deterministic workload counts. If usage is not observable, say `not observable` — never invent savings.
@@ -58,7 +68,7 @@ Report Fable-direct-relative estimates for output quality, elapsed time, token c
 Present one recommended route (compact alternative only if it has a genuinely different tradeoff):
 
 - selected profile;
-- stages: role, model, subagent_type, order, expected deliverable, validation per stage;
+- stages: role, model, effort, subagent_type, order, expected deliverable, validation per stage;
 - Fable-direct comparison and estimate confidence;
 - external/destructive actions that remain separately approval-gated.
 
