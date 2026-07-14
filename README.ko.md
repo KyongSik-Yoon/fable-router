@@ -44,3 +44,7 @@ for f in fable-router/agents/*.md; do ln -s "$(pwd)/$f" ~/.claude/agents/; done
 설정 → Capabilities → Skills에서 `skills/fable-router` 폴더(또는 zip)를 업로드.
 
 이후 `/fable-router`로 호출. 명시 호출 시에만 활성화된다.
+
+## Auto 모드
+
+기본 비활성. `/fable-router auto on`이 플래그 파일 `~/.claude/fable-router-auto`를 생성하며, 존재하는 동안 프로파일·라우트 승인 질문을 건너뛰고 추천 라우트(인자에 프로파일이 없으면 BALANCED)를 즉시 실행한다. `/fable-router auto off`로 해제. 안전 불변식과 일반 권한 프롬프트는 그대로 적용된다.

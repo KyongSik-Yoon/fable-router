@@ -1,6 +1,6 @@
 ---
 name: fable-router
-description: Save Fable 5 usage by routing explicitly requested work across Claude models (Fable 5, Opus, Sonnet, Haiku) via the Agent tool's model override, using a user-selected PERFORMANCE, BALANCED, or TOKEN_SAVER profile. Fable owns design direction, architecture, adversarial review, and final judgment; cheaper models do capability-matched stages. Use only when the user explicitly invokes /fable-router or directly asks for the Fable 5 model router. Do not invoke implicitly for ordinary tasks.
+description: Save Fable 5 usage by routing explicitly requested work across Claude models (Fable 5, Opus, Sonnet, Haiku) via the Agent tool's model override, using a user-selected PERFORMANCE, BALANCED, or TOKEN_SAVER profile. Fable owns design direction, architecture, adversarial review, and final judgment; cheaper models do capability-matched stages. Supports an opt-in auto mode (flag file, toggled with "auto on"/"auto off") that skips the profile and approval questions and runs the recommended route directly. Use only when the user explicitly invokes /fable-router or directly asks for the Fable 5 model router. Do not invoke implicitly for ordinary tasks.
 ---
 
 # Fable 5 Model Router
@@ -9,7 +9,15 @@ Exploit each Claude model's strengths so Fable 5 (the parent, most expensive tie
 
 ## Activation
 
-Activate only on explicit invocation. Before the first user selection, use only the request and existing conversation context — no file reads, commands, or agents.
+Activate only on explicit invocation. Before the first user selection, use only the request and existing conversation context — no file reads, commands, or agents, except the single auto-mode flag check below.
+
+## Auto Mode
+
+Default: disabled. State is the existence of the flag file `~/.claude/fable-router-auto` — check it with one `test -f` at activation.
+
+- Arguments `auto on` / `auto off` toggle the flag (`touch` / `rm -f`), confirm the new state, and stop — no routing.
+- **Disabled** (no flag): run Gate 1 and Gate 2 as written below.
+- **Enabled** (flag exists): skip both AskUserQuestion gates. Pick the profile yourself — BALANCED unless the arguments name one — then build the recommended route and execute it immediately. State the chosen route in one line before spawning (profile, stages as model+effort+subagent_type). Everything else is unchanged: safety invariants, normal permission prompts, escalation rules, and the full completion report. Auto mode never authorizes external or destructive actions that Gate 2 would have flagged — those still stop for approval.
 
 ## Gate 1: Choose An Objective
 

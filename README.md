@@ -44,3 +44,7 @@ Note: the manual install registers workers as `worker-low` etc. (no `fable-route
 Upload the `skills/fable-router` folder (or a zip of it) in Settings → Capabilities → Skills.
 
 Then invoke with `/fable-router`. Activates only on explicit invocation.
+
+## Auto mode
+
+Off by default. `/fable-router auto on` creates the flag file `~/.claude/fable-router-auto`; while it exists, the skill skips the profile and route-approval questions and runs its recommended route (BALANCED unless a profile is named in the arguments) immediately. `/fable-router auto off` removes the flag. Safety invariants and normal permission prompts still apply.
