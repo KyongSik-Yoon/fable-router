@@ -48,3 +48,7 @@ for f in fable-router/agents/*.md; do ln -s "$(pwd)/$f" ~/.claude/agents/; done
 ## Auto 모드
 
 기본 비활성. `/fable-router auto on`이 플래그 파일 `~/.claude/fable-router-auto`를 생성하며, 존재하는 동안 프로파일·라우트 승인 질문을 건너뛰고 추천 라우트(인자에 프로파일이 없으면 BALANCED)를 즉시 실행한다. `/fable-router auto off`로 해제. 안전 불변식과 일반 권한 프롬프트는 그대로 적용된다.
+
+플러그인으로 설치하면 매 턴 `/fable-router`를 칠 필요도 없다. 함께 배포되는 `UserPromptSubmit` 훅(`hooks/auto-route.sh`)이 같은 플래그를 확인해 각 턴에 라우팅 지시를 주입한다. 지시문에는 사소하거나 대화성 턴은 라우팅하지 말라는 조항이 들어 있다 — 그런 턴은 라우팅 오버헤드가 절약분보다 크기 때문. 플래그가 없으면 훅은 아무것도 출력하지 않고 종료한다.
+
+수동 설치에는 훅이 붙지 않는다(스킬 심볼릭 링크만으로는 훅이 등록되지 않음). 플러그인 없이 쓰려면 `~/.claude/settings.json`의 `UserPromptSubmit` 훅이 체크아웃의 `hooks/auto-route.sh`를 가리키게 하면 된다.

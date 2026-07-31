@@ -48,3 +48,7 @@ Then invoke with `/fable-router`. Activates only on explicit invocation.
 ## Auto mode
 
 Off by default. `/fable-router auto on` creates the flag file `~/.claude/fable-router-auto`; while it exists, the skill skips the profile and route-approval questions and runs its recommended route (BALANCED unless a profile is named in the arguments) immediately. `/fable-router auto off` removes the flag. Safety invariants and normal permission prompts still apply.
+
+With the plugin install, auto mode also stops needing `/fable-router` on every turn: the bundled `UserPromptSubmit` hook (`hooks/auto-route.sh`) checks the same flag and injects a routing directive into each turn. The directive tells the router to skip trivial and conversational turns — routing overhead would cost more than it saves there — so short follow-ups stay direct. With no flag the hook exits silently and injects nothing.
+
+Manual installs do not pick up the hook (symlinking the skill registers no hooks). To get it without the plugin, point a `UserPromptSubmit` hook in `~/.claude/settings.json` at your checkout's `hooks/auto-route.sh`.
