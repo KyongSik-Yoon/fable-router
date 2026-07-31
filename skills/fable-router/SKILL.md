@@ -1,7 +1,7 @@
 ---
 name: fable-router
 argument-hint: "[task... | auto on | auto off]"
-description: Save Fable 5 usage by routing explicitly requested work across Claude models (Fable 5, Opus, Sonnet, Haiku) via the Agent tool's model override, using a user-selected PERFORMANCE, BALANCED, or TOKEN_SAVER profile. Fable owns design direction, architecture, adversarial review, and final judgment; cheaper models do capability-matched stages. Supports an opt-in auto mode (flag file, toggled with "auto on"/"auto off") that skips the profile and approval questions and runs the recommended route directly. Use only when the user explicitly invokes /fable-router or directly asks for the Fable 5 model router. Do not invoke implicitly for ordinary tasks.
+description: Save Fable 5 usage by routing explicitly requested work across Claude models (Fable 5, Opus, Sonnet, Haiku) via the Agent tool's model override, using a user-selected PERFORMANCE, BALANCED, or TOKEN_SAVER profile. Fable owns design direction, architecture, adversarial review, and final judgment; cheaper models do capability-matched stages. Supports an opt-in auto mode (flag file, toggled with "auto on"/"auto off") that skips the profile and approval questions and runs the recommended route directly, plus a UserPromptSubmit hook that applies auto mode to each turn while the flag is set. Use only when the user explicitly invokes /fable-router, directly asks for the Fable 5 model router, or when the auto-mode hook injects its routing directive. Do not invoke implicitly for ordinary tasks.
 ---
 
 # Fable 5 Model Router
@@ -12,12 +12,15 @@ Exploit each Claude model's strengths so Fable 5 (the parent, most expensive tie
 
 Activate only on explicit invocation. Before the first user selection, use only the request and existing conversation context — no file reads, commands, or agents, except the single auto-mode flag check below.
 
+The plugin's `UserPromptSubmit` hook counts as explicit invocation. While auto mode is on it injects a routing directive on every parent turn; acting on that directive is intended, not implicit activation. The directive carries its own bail-out — trivial or conversational turns are answered directly, unrouted — so honor that bail-out rather than routing every turn mechanically.
+
 ## Auto Mode
 
 Default: disabled. State is the existence of the flag file `~/.claude/fable-router-auto` — check it with one `test -f` at activation.
 
 - Arguments `auto on` / `auto off` toggle the flag (`touch` / `rm -f`), confirm the new state, and stop — no routing.
 - **Disabled** (no flag): run Gate 1 and Gate 2 as written below.
+- **Hook** (plugin install only): `hooks/auto-route.sh` fires on `UserPromptSubmit`, reads the same flag, and injects the routing directive so auto mode applies without typing `/fable-router` each turn. No flag means no injection. Manual installs get auto mode but not the hook.
 - **Enabled** (flag exists): skip both AskUserQuestion gates. Pick the profile yourself — BALANCED unless the arguments name one — then build the recommended route and execute it immediately. State the chosen route in one line before spawning (profile, stages as model+effort+subagent_type). Everything else is unchanged: safety invariants, normal permission prompts, escalation rules, and the full completion report. Auto mode never authorizes external or destructive actions that Gate 2 would have flagged — those still stop for approval.
 
 ## Gate 1: Choose An Objective
