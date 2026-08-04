@@ -89,6 +89,16 @@ Effort is an axis orthogonal to model choice; pick both per stage.
 
 Rules: a stage with no deterministic validator never gets `low`. TOKEN_SAVER prefers the lowest effort whose floor holds — do not spend `sonnet` + `medium` where `haiku` + `low` with a validator suffices; PERFORMANCE may raise review stages to `high` or `xhigh` but still never lowers a floor.
 
+### Parent Effort (recommendation)
+
+Session effort is user-configured, not set by this skill, but it shapes what the router leaves in the parent — so document the tradeoff here. Workers pin their own effort in frontmatter and never inherit the session's; parent effort therefore affects only the parent's turns (route design, consequence classification, design acceptance, adversarial review, integration, pulled-back stages) plus effort-unpinned subagent types like `Explore`.
+
+- **Default: `high`.** The router leaves the parent exactly the judgment-heavy work; a routing misassignment costs one bounded escalation round, but shallow adversarial review or a shallow attempt at a pulled-back stage (by definition a problem two cheaper attempts already failed) is where low parent effort actually loses.
+- **`medium` is reasonable** when Gate 2 stays on (the user reviews the route) and the workload is well-specified with deterministic validators. `low` is worth trying only under those same conditions.
+- **Avoid `low`/`medium` combined with auto mode** — with both gates skipped, the parent's judgment is the only gate; don't make that gate the thinnest one.
+- **Raise to `xhigh` per session, not permanently**, when the parent itself performs architecture work or final review of high-consequence changes.
+- Tuning signal: frequent stage pull-backs → return to `high`; rare escalations on validator-backed work → lowering costs little.
+
 ## Estimate Effects Honestly
 
 Report Fable-direct-relative estimates for output quality, elapsed time, token cost, and regression risk using directional values (`lower`/`similar`/`higher`) plus evidence and uncertainty. Use numbers only from measured history or deterministic workload counts. If usage is not observable, say `not observable` — never invent savings.

@@ -45,6 +45,10 @@ for f in fable-router/agents/*.md; do ln -s "$(pwd)/$f" ~/.claude/agents/; done
 
 이후 `/fable-router`로 호출. 명시 호출 시에만 활성화된다.
 
+## 부모(세션) effort
+
+워커는 frontmatter에 effort가 고정돼 있어 세션 effort 설정은 부모 턴에만 영향을 준다 — 그런데 그 부모 턴이 바로 라우터가 Fable에 남겨둔 판단 중심 작업들이다(라우트 설계, 적대적 리뷰, 통합, 워커 2회 실패 후 회수한 단계). 권장 기본값: **high**. Gate 2를 켜두고 결정적 검증기가 있는 워크로드라면 `medium`(실험적으로 `low`)도 합리적이다. 단, auto 모드와 low/medium 조합은 피할 것 — 게이트를 건너뛰면 부모의 판단이 유일한 관문이 된다. 아키텍처 작업이나 고위험 최종 리뷰가 걸린 세션만 `xhigh`로 올린다. 상세 기준: SKILL.md § Parent Effort.
+
 ## Opus 버전 핀
 
 기본값은 핀 없음 — Opus 단계는 Agent 도구의 `opus` 별칭을 쓰고, 별칭은 하네스가 매핑하는 최신 Opus로 해석된다. 그 버전의 품질이 아쉬우면 Opus 단계가 실제로 실행될 버전을 고정할 수 있다([opus-5-router](https://github.com/KyongSik-Yoon/opus-5-router)의 방식 차용: 에이전트 frontmatter의 전체 모델 ID가 별칭보다 우선):

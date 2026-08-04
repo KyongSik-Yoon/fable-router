@@ -45,6 +45,10 @@ Upload the `skills/fable-router` folder (or a zip of it) in Settings → Capabil
 
 Then invoke with `/fable-router`. Activates only on explicit invocation.
 
+## Parent (session) effort
+
+Workers pin their own effort in frontmatter, so the session's effort setting only affects the parent's turns — and those are exactly the judgment-heavy ones the router leaves to Fable (route design, adversarial review, integration, stages pulled back after two failed worker attempts). Recommended default: **high**. `medium` (or experimentally `low`) is reasonable when Gate 2 stays on and the workload has deterministic validators; avoid low/medium together with auto mode, since skipped gates make the parent's judgment the only gate. Raise to `xhigh` per session for architecture-heavy or high-consequence-review work. Full guidance: SKILL.md § Parent Effort.
+
 ## Opus version pin
 
 By default, Opus stages use the Agent tool's `opus` alias — whatever the harness currently maps it to (the newest Opus). If that version underperforms, pin the version routed Opus stages actually run on (mechanism borrowed from [opus-5-router](https://github.com/KyongSik-Yoon/opus-5-router): full model IDs in agent frontmatter beat the alias):
