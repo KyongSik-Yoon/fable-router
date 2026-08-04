@@ -1,7 +1,7 @@
 ---
 name: fable-router
-argument-hint: "[task... | auto on | auto off]"
-description: Save Fable 5 usage by routing explicitly requested work across Claude models (Fable 5, Opus, Sonnet, Haiku) via the Agent tool's model override, using a user-selected PERFORMANCE, BALANCED, or TOKEN_SAVER profile. Fable owns design direction, architecture, adversarial review, and final judgment; cheaper models do capability-matched stages. Supports an opt-in auto mode (flag file, toggled with "auto on"/"auto off") that skips the profile and approval questions and runs the recommended route directly, plus a UserPromptSubmit hook that applies auto mode to each turn while the flag is set. Use only when the user explicitly invokes /fable-router, directly asks for the Fable 5 model router, or when the auto-mode hook injects its routing directive. Do not invoke implicitly for ordinary tasks.
+argument-hint: "[task... | auto on | auto off | opus <version|status|default>]"
+description: Save Fable 5 usage by routing explicitly requested work across Claude models (Fable 5, Opus, Sonnet, Haiku) via the Agent tool's model override, using a user-selected PERFORMANCE, BALANCED, or TOKEN_SAVER profile. Fable owns design direction, architecture, adversarial review, and final judgment; cheaper models do capability-matched stages. Supports an opt-in auto mode (flag file, toggled with "auto on"/"auto off") that skips the profile and approval questions and runs the recommended route directly, plus a UserPromptSubmit hook that applies auto mode to each turn while the flag is set, plus an "opus <version>" sub-command that pins which Opus version routed Opus stages use (e.g. "opus 4.8" when the current alias target underperforms). Use only when the user explicitly invokes /fable-router, directly asks for the Fable 5 model router, or when the auto-mode hook injects its routing directive. Do not invoke implicitly for ordinary tasks.
 ---
 
 # Fable 5 Model Router
@@ -10,7 +10,7 @@ Exploit each Claude model's strengths so Fable 5 (the parent, most expensive tie
 
 ## Activation
 
-Activate only on explicit invocation. Before the first user selection, use only the request and existing conversation context — no file reads, commands, or agents, except the single auto-mode flag check below.
+Activate only on explicit invocation. Before the first user selection, use only the request and existing conversation context — no file reads, commands, or agents, except the auto-mode and opus-pin flag checks below.
 
 The plugin's `UserPromptSubmit` hook counts as explicit invocation. While auto mode is on it injects a routing directive on every parent turn; acting on that directive is intended, not implicit activation. The directive carries its own bail-out — trivial or conversational turns are answered directly, unrouted — so honor that bail-out rather than routing every turn mechanically.
 
@@ -22,6 +22,23 @@ Default: disabled. State is the existence of the flag file `~/.claude/fable-rout
 - **Disabled** (no flag): run Gate 1 and Gate 2 as written below.
 - **Hook** (plugin install only): `hooks/auto-route.sh` fires on `UserPromptSubmit`, reads the same flag, and injects the routing directive so auto mode applies without typing `/fable-router` each turn. No flag means no injection. Manual installs get auto mode but not the hook.
 - **Enabled** (flag exists): skip both AskUserQuestion gates. Pick the profile yourself — BALANCED unless the arguments name one — then build the recommended route and execute it immediately. State the chosen route in one line before spawning (profile, stages as model+effort+subagent_type). Everything else is unchanged: safety invariants, normal permission prompts, escalation rules, and the full completion report. Auto mode never authorizes external or destructive actions that Gate 2 would have flagged — those still stop for approval.
+
+## Opus Version Pin
+
+Default: unpinned — stages routed to Opus use the Agent tool's `opus` alias, which resolves to whatever the harness maps it to (currently the newest Opus). State is the content of `~/.claude/fable-router-opus-pin` — one full model ID on one line — checked with a single `cat` at activation alongside the auto-mode flag.
+
+Sub-command (`opus ...` arguments toggle state, confirm, and stop — no routing, same shape as `auto on`/`auto off`):
+
+- `opus 4.8` / `opus 4.1` — write `claude-opus-4-8` / `claude-opus-4-1` to the pin file. Also accept the equivalent full `claude-opus-*` model ID and store any other such ID verbatim (see fallback below).
+- `opus 5`, `opus default`, or `opus off` — remove the pin file; the `opus` alias applies again.
+- `opus` or `opus status` — report the current pin (or "unpinned") and, for a pinned version, whether its pinned workers are available.
+
+While pinned, every stage the route assigns to Opus uses the pinned version:
+
+- **Pin has shipped pinned workers** (`4.8` → `fable-router:worker-opus48-medium|high`, `4.1` → `fable-router:worker-opus41-medium|high`): spawn that `subagent_type` and **omit the Agent tool `model` parameter** — the pin lives in the worker's frontmatter and a `model` parameter would override it back to the alias.
+- **Any other pinned ID**: pass the stored ID verbatim as the `model` parameter on the normal `worker-*` types. If the harness rejects it, stop and ask (AskUserQuestion) whether to fall back to the alias or re-pin — never substitute silently.
+
+Scope: the pin changes only which Opus executes Opus stages. Capability floors, effort floors, and which stages route to Opus are unchanged; Sonnet/Haiku/Fable stages are untouched; escalation above Opus still goes to Fable, not another Opus version. Pinned workers ship only `medium` and `high` efforts — the `low` floor (deterministic, validator-backed work) is never Opus territory; if a route ever wants Opus at low, use medium. Gate 2 route listings and the completion report must show the pinned model ID, not the bare word "opus", so the user sees exactly what will run.
 
 ## Gate 1: Choose An Objective
 
@@ -50,7 +67,7 @@ Use Explore/cavecrew-investigator subagents (model: haiku or sonnet) for this di
 7. Escalate on ambiguity, failed validation, conflicting evidence, or higher consequence — cheapest step first: raise effort within the same model (low → medium → high) before raising the model (Haiku → Sonnet → Opus → Fable). One escalation retry per stage before pulling the stage back into the parent.
 8. Compare the route with Fable-direct. If delegation lacks a credible advantage for the selected profile, recommend Fable-direct and say why.
 
-Mechanics: spawn via the Agent tool with an explicit `model` parameter (`haiku`, `sonnet`, `opus`; omit = inherit Fable — never omit for a routed stage). The Agent tool has no per-call effort parameter; effort comes from the agent definition, so route effort by choosing `subagent_type`: `fable-router:worker-low`, `fable-router:worker-medium`, or `fable-router:worker-high` (this plugin ships them; model × effort compose freely via the `model` parameter). Workers carry WebSearch/WebFetch, so web-research stages route through them too. Other types still work when their scope fits — `Explore` for codebase search, `caveman:cavecrew-*` for compressed output — but they inherit session effort. Parallel independent stages go in one message. Use `isolation: "worktree"` only when agents mutate files in parallel.
+Mechanics: spawn via the Agent tool with an explicit `model` parameter (`haiku`, `sonnet`, `opus`; omit = inherit Fable — never omit for a routed stage, with one exception: Opus-pinned workers carry their model in frontmatter and are spawned with no `model` parameter, per Opus Version Pin). The Agent tool has no per-call effort parameter; effort comes from the agent definition, so route effort by choosing `subagent_type`: `fable-router:worker-low`, `fable-router:worker-medium`, or `fable-router:worker-high` (this plugin ships them; model × effort compose freely via the `model` parameter). Workers carry WebSearch/WebFetch, so web-research stages route through them too. Other types still work when their scope fits — `Explore` for codebase search, `caveman:cavecrew-*` for compressed output — but they inherit session effort. Parallel independent stages go in one message. Use `isolation: "worktree"` only when agents mutate files in parallel.
 
 ## Capability Floors
 

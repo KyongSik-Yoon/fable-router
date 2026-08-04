@@ -45,6 +45,19 @@ Upload the `skills/fable-router` folder (or a zip of it) in Settings → Capabil
 
 Then invoke with `/fable-router`. Activates only on explicit invocation.
 
+## Opus version pin
+
+By default, Opus stages use the Agent tool's `opus` alias — whatever the harness currently maps it to (the newest Opus). If that version underperforms, pin the version routed Opus stages actually run on (mechanism borrowed from [opus-5-router](https://github.com/KyongSik-Yoon/opus-5-router): full model IDs in agent frontmatter beat the alias):
+
+```
+/fable-router opus 4.8      # pin Opus stages to claude-opus-4-8
+/fable-router opus 4.1      # pin to claude-opus-4-1
+/fable-router opus status   # show the current pin
+/fable-router opus default  # unpin (also: opus 5, opus off)
+```
+
+State is the pin file `~/.claude/fable-router-opus-pin` (one full model ID). While it exists, Opus stages spawn the pinned workers `worker-opus48-*` / `worker-opus41-*` (`medium`/`high` efforts; the model ID lives in their frontmatter, so the `model` parameter is omitted). Any other `claude-opus-*` ID is stored verbatim and passed as the `model` parameter directly. The pin only swaps which Opus runs Opus stages — capability floors, effort floors, and Sonnet/Haiku/Fable routing are unchanged.
+
 ## Auto mode
 
 Off by default. `/fable-router auto on` creates the flag file `~/.claude/fable-router-auto`; while it exists, the skill skips the profile and route-approval questions and runs its recommended route (BALANCED unless a profile is named in the arguments) immediately. `/fable-router auto off` removes the flag. Safety invariants and normal permission prompts still apply.
