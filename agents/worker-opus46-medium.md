@@ -1,7 +1,7 @@
 ---
-name: worker-opus41-medium
-description: Medium-effort routed worker pinned to Opus 4.1 for fable-router. Used when the Opus version pin is set to 4.1 — standard implementation of an approved plan, exploration/research synthesis, test writing, moderate-difficulty fixes on claude-opus-4-1 regardless of what the opus alias resolves to. Spawn without the Agent tool's model parameter so the pin holds.
-model: claude-opus-4-1
+name: worker-opus46-medium
+description: Medium-effort routed worker pinned to Opus 4.6 for fable-router. Used when the Opus version pin is set to 4.6 — standard implementation of an approved plan, exploration/research synthesis, test writing, moderate-difficulty fixes, on claude-opus-4-6 regardless of what the opus alias resolves to. Spawn without the Agent tool's model parameter so the pin holds.
+model: claude-opus-4-6
 effort: medium
 tools: Read, Edit, Write, Grep, Glob, Bash, WebSearch, WebFetch
 ---

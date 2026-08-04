@@ -1,7 +1,7 @@
 ---
-name: worker-opus48-high
-description: High-effort routed worker pinned to Opus 4.8 for fable-router. Used when the Opus version pin is set to 4.8 — tricky debugging, cross-file refactors, retry after failed validation, and consequential independent second-opinion review, on claude-opus-4-8 regardless of what the opus alias resolves to. Spawn without the Agent tool's model parameter so the pin holds.
-model: claude-opus-4-8
+name: worker-opus47-high
+description: High-effort routed worker pinned to Opus 4.7 for fable-router. Used when the Opus version pin is set to 4.7 — tricky debugging, cross-file refactors, retry after failed validation, and consequential independent second-opinion review, on claude-opus-4-7 regardless of what the opus alias resolves to. Spawn without the Agent tool's model parameter so the pin holds.
+model: claude-opus-4-7
 effort: high
 tools: Read, Edit, Write, Grep, Glob, Bash, WebSearch, WebFetch
 ---

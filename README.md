@@ -17,7 +17,7 @@ Inspired by [gpt-5.6-router](https://github.com/volition79/gpt-5.6-router), port
 - Sol/Terra/Luna remapped to Fable / Opus·Sonnet / Haiku capability floors
 - Removed `spawn_agent` runtime classification (A/B/C) and Codex troubleshooting — the Claude Code Agent tool always supports the `model` parameter
 - Merged references/assets docs into a single SKILL.md
-- Added effort routing: the Agent tool has no per-call effort parameter, so the plugin ships `worker-low` / `worker-medium` / `worker-high` agent definitions (`agents/`) and routes effort by `subagent_type`, composing freely with the `model` override
+- Added effort routing: the Agent tool has no per-call effort parameter, so the plugin ships `worker-low` / `worker-medium` / `worker-high` / `worker-xhigh` agent definitions (`agents/`) and routes effort by `subagent_type`, composing freely with the `model` override
 
 ## Install
 
@@ -50,13 +50,12 @@ Then invoke with `/fable-router`. Activates only on explicit invocation.
 By default, Opus stages use the Agent tool's `opus` alias — whatever the harness currently maps it to (the newest Opus). If that version underperforms, pin the version routed Opus stages actually run on (mechanism borrowed from [opus-5-router](https://github.com/KyongSik-Yoon/opus-5-router): full model IDs in agent frontmatter beat the alias):
 
 ```
-/fable-router opus 4.8      # pin Opus stages to claude-opus-4-8
-/fable-router opus 4.1      # pin to claude-opus-4-1
+/fable-router opus 4.8      # pin Opus stages to claude-opus-4-8 (also: 4.7, 4.6)
 /fable-router opus status   # show the current pin
 /fable-router opus default  # unpin (also: opus 5, opus off)
 ```
 
-State is the pin file `~/.claude/fable-router-opus-pin` (one full model ID). While it exists, Opus stages spawn the pinned workers `worker-opus48-*` / `worker-opus41-*` (`medium`/`high` efforts; the model ID lives in their frontmatter, so the `model` parameter is omitted). Any other `claude-opus-*` ID is stored verbatim and passed as the `model` parameter directly. The pin only swaps which Opus runs Opus stages — capability floors, effort floors, and Sonnet/Haiku/Fable routing are unchanged.
+State is the pin file `~/.claude/fable-router-opus-pin` (one full model ID). While it exists, Opus stages spawn the pinned workers `worker-opus48-*` / `worker-opus47-*` / `worker-opus46-*` (`medium`/`high`/`xhigh` efforts; the model ID lives in their frontmatter, so the `model` parameter is omitted). Any other `claude-opus-*` ID is stored verbatim and passed as the `model` parameter directly. The pin only swaps which Opus runs Opus stages — capability floors, effort floors, and Sonnet/Haiku/Fable routing are unchanged.
 
 ## Auto mode
 

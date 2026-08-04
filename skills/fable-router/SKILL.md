@@ -29,16 +29,16 @@ Default: unpinned — stages routed to Opus use the Agent tool's `opus` alias, w
 
 Sub-command (`opus ...` arguments toggle state, confirm, and stop — no routing, same shape as `auto on`/`auto off`):
 
-- `opus 4.8` / `opus 4.1` — write `claude-opus-4-8` / `claude-opus-4-1` to the pin file. Also accept the equivalent full `claude-opus-*` model ID and store any other such ID verbatim (see fallback below).
+- `opus 4.8` / `opus 4.7` / `opus 4.6` — write `claude-opus-4-8` / `claude-opus-4-7` / `claude-opus-4-6` to the pin file. Also accept the equivalent full `claude-opus-*` model ID and store any other such ID verbatim (see fallback below).
 - `opus 5`, `opus default`, or `opus off` — remove the pin file; the `opus` alias applies again.
 - `opus` or `opus status` — report the current pin (or "unpinned") and, for a pinned version, whether its pinned workers are available.
 
 While pinned, every stage the route assigns to Opus uses the pinned version:
 
-- **Pin has shipped pinned workers** (`4.8` → `fable-router:worker-opus48-medium|high`, `4.1` → `fable-router:worker-opus41-medium|high`): spawn that `subagent_type` and **omit the Agent tool `model` parameter** — the pin lives in the worker's frontmatter and a `model` parameter would override it back to the alias.
+- **Pin has shipped pinned workers** (`4.8` → `fable-router:worker-opus48-medium|high|xhigh`, likewise `worker-opus47-*` and `worker-opus46-*`): spawn that `subagent_type` and **omit the Agent tool `model` parameter** — the pin lives in the worker's frontmatter and a `model` parameter would override it back to the alias.
 - **Any other pinned ID**: pass the stored ID verbatim as the `model` parameter on the normal `worker-*` types. If the harness rejects it, stop and ask (AskUserQuestion) whether to fall back to the alias or re-pin — never substitute silently.
 
-Scope: the pin changes only which Opus executes Opus stages. Capability floors, effort floors, and which stages route to Opus are unchanged; Sonnet/Haiku/Fable stages are untouched; escalation above Opus still goes to Fable, not another Opus version. Pinned workers ship only `medium` and `high` efforts — the `low` floor (deterministic, validator-backed work) is never Opus territory; if a route ever wants Opus at low, use medium. Gate 2 route listings and the completion report must show the pinned model ID, not the bare word "opus", so the user sees exactly what will run.
+Scope: the pin changes only which Opus executes Opus stages. Capability floors, effort floors, and which stages route to Opus are unchanged; Sonnet/Haiku/Fable stages are untouched; escalation above Opus still goes to Fable, not another Opus version. Pinned workers ship `medium`, `high`, and `xhigh` efforts but not `low` — the `low` floor (deterministic, validator-backed work) is never Opus territory; if a route ever wants Opus at low, use medium. Gate 2 route listings and the completion report must show the pinned model ID, not the bare word "opus", so the user sees exactly what will run.
 
 ## Gate 1: Choose An Objective
 
@@ -64,10 +64,10 @@ Use Explore/cavecrew-investigator subagents (model: haiku or sonnet) for this di
 4. The parent Fable is already an active capability — do not duplicate its planning or integration in a subagent unless independent review has explicit value.
 5. Prefer one agent. Add agents only for: independent evidence, disjoint parallel work, deterministic volume, or consequential independent review.
 6. Keep context packets narrow: each subagent gets only its role contract, objective, required evidence (file paths, not dumps), allowed write surface, non-goals, validation command, and output shape.
-7. Escalate on ambiguity, failed validation, conflicting evidence, or higher consequence — cheapest step first: raise effort within the same model (low → medium → high) before raising the model (Haiku → Sonnet → Opus → Fable). One escalation retry per stage before pulling the stage back into the parent.
+7. Escalate on ambiguity, failed validation, conflicting evidence, or higher consequence — cheapest step first: raise effort within the same model (low → medium → high → xhigh) before raising the model (Haiku → Sonnet → Opus → Fable). One escalation retry per stage before pulling the stage back into the parent.
 8. Compare the route with Fable-direct. If delegation lacks a credible advantage for the selected profile, recommend Fable-direct and say why.
 
-Mechanics: spawn via the Agent tool with an explicit `model` parameter (`haiku`, `sonnet`, `opus`; omit = inherit Fable — never omit for a routed stage, with one exception: Opus-pinned workers carry their model in frontmatter and are spawned with no `model` parameter, per Opus Version Pin). The Agent tool has no per-call effort parameter; effort comes from the agent definition, so route effort by choosing `subagent_type`: `fable-router:worker-low`, `fable-router:worker-medium`, or `fable-router:worker-high` (this plugin ships them; model × effort compose freely via the `model` parameter). Workers carry WebSearch/WebFetch, so web-research stages route through them too. Other types still work when their scope fits — `Explore` for codebase search, `caveman:cavecrew-*` for compressed output — but they inherit session effort. Parallel independent stages go in one message. Use `isolation: "worktree"` only when agents mutate files in parallel.
+Mechanics: spawn via the Agent tool with an explicit `model` parameter (`haiku`, `sonnet`, `opus`; omit = inherit Fable — never omit for a routed stage, with one exception: Opus-pinned workers carry their model in frontmatter and are spawned with no `model` parameter, per Opus Version Pin). The Agent tool has no per-call effort parameter; effort comes from the agent definition, so route effort by choosing `subagent_type`: `fable-router:worker-low`, `fable-router:worker-medium`, `fable-router:worker-high`, or `fable-router:worker-xhigh` (this plugin ships them; model × effort compose freely via the `model` parameter). Workers carry WebSearch/WebFetch, so web-research stages route through them too. Other types still work when their scope fits — `Explore` for codebase search, `caveman:cavecrew-*` for compressed output — but they inherit session effort. Parallel independent stages go in one message. Use `isolation: "worktree"` only when agents mutate files in parallel.
 
 ## Capability Floors
 
@@ -85,8 +85,9 @@ Effort is an axis orthogonal to model choice; pick both per stage.
 - **low** — deterministic or repetitive work where an objective validator (tests, linter, typechecker, countable diff) catches mistakes: bulk scanning, extraction, mechanical conversions.
 - **medium** — standard implementation of an approved plan, research synthesis, test writing: low ambiguity, clear acceptance criteria. Default when unsure between low and medium.
 - **high** — tricky debugging, cross-file refactors, retries after failed validation, consequential independent review.
+- **xhigh** — the hardest delegated stages: adversarial review of high-consequence changes, debugging that survived a `high` attempt, subtle correctness analysis. The most expensive tier per stage — reach it through escalation, or assign it directly only under PERFORMANCE for a stage whose consequence clearly warrants it.
 
-Rules: a stage with no deterministic validator never gets `low`. TOKEN_SAVER prefers the lowest effort whose floor holds — do not spend `sonnet` + `medium` where `haiku` + `low` with a validator suffices; PERFORMANCE may raise review stages to `high` but still never lowers a floor.
+Rules: a stage with no deterministic validator never gets `low`. TOKEN_SAVER prefers the lowest effort whose floor holds — do not spend `sonnet` + `medium` where `haiku` + `low` with a validator suffices; PERFORMANCE may raise review stages to `high` or `xhigh` but still never lowers a floor.
 
 ## Estimate Effects Honestly
 
