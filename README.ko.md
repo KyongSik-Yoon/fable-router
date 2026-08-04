@@ -17,7 +17,7 @@
 - Sol/Terra/Luna → Fable/Opus·Sonnet/Haiku 역량 플로어로 재매핑
 - `spawn_agent` 런타임 분류(A/B/C)·Codex 트러블슈팅 제거 — Claude Code Agent 도구는 `model` 파라미터를 항상 지원
 - references/assets 문서를 SKILL.md 하나로 통합
-- effort 라우팅 추가: Agent 도구에는 호출별 effort 파라미터가 없어, 플러그인이 `worker-low` / `worker-medium` / `worker-high` 에이전트 정의(`agents/`)를 제공하고 `subagent_type`으로 effort를, `model` 오버라이드로 모델을 조합해 라우팅
+- effort 라우팅 추가: Agent 도구에는 호출별 effort 파라미터가 없어, 플러그인이 `worker-low` / `worker-medium` / `worker-high` / `worker-xhigh` 에이전트 정의(`agents/`)를 제공하고 `subagent_type`으로 effort를, `model` 오버라이드로 모델을 조합해 라우팅
 
 ## 설치
 
@@ -44,6 +44,18 @@ for f in fable-router/agents/*.md; do ln -s "$(pwd)/$f" ~/.claude/agents/; done
 설정 → Capabilities → Skills에서 `skills/fable-router` 폴더(또는 zip)를 업로드.
 
 이후 `/fable-router`로 호출. 명시 호출 시에만 활성화된다.
+
+## Opus 버전 핀
+
+기본값은 핀 없음 — Opus 단계는 Agent 도구의 `opus` 별칭을 쓰고, 별칭은 하네스가 매핑하는 최신 Opus로 해석된다. 그 버전의 품질이 아쉬우면 Opus 단계가 실제로 실행될 버전을 고정할 수 있다([opus-5-router](https://github.com/KyongSik-Yoon/opus-5-router)의 방식 차용: 에이전트 frontmatter의 전체 모델 ID가 별칭보다 우선):
+
+```
+/fable-router opus 4.8      # Opus 단계를 claude-opus-4-8로 고정 (4.7, 4.6도 가능)
+/fable-router opus status   # 현재 핀 확인
+/fable-router opus default  # 핀 해제 (opus 5, opus off도 동일)
+```
+
+상태는 핀 파일 `~/.claude/fable-router-opus-pin`(전체 모델 ID 한 줄)이다. 파일이 존재하는 동안 Opus 단계는 핀 워커 `worker-opus48-*` / `worker-opus47-*` / `worker-opus46-*`(`medium`/`high`/`xhigh` effort)로 스폰된다 — 모델 ID가 워커 frontmatter에 있으므로 `model` 파라미터는 생략한다. 그 외 `claude-opus-*` ID는 그대로 저장했다가 `model` 파라미터로 직접 전달한다. 핀은 Opus 단계를 실행하는 Opus 버전만 바꾼다 — 역량 플로어, effort 플로어, Sonnet/Haiku/Fable 라우팅은 그대로다.
 
 ## Auto 모드
 
