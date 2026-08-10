@@ -36,7 +36,7 @@ Sub-command (`opus ...` arguments toggle state, confirm, and stop — no routing
 While pinned, every stage the route assigns to Opus uses the pinned version:
 
 - **Pin has shipped pinned workers** (`4.8` → `fable-router:worker-opus48-medium|high|xhigh`, likewise `worker-opus47-*` and `worker-opus46-*`): spawn that `subagent_type` and **omit the Agent tool `model` parameter** — the pin lives in the worker's frontmatter and a `model` parameter would override it back to the alias.
-- **Any other pinned ID**: pass the stored ID verbatim as the `model` parameter on the normal `worker-*` types. If the harness rejects it, stop and ask (AskUserQuestion) whether to fall back to the alias or re-pin — never substitute silently.
+- **Any other pinned ID**: the Agent tool's `model` parameter accepts only tier aliases (`haiku`/`sonnet`/`opus`/`fable`), never full model IDs — a pin without shipped pinned workers therefore cannot be honored via the `model` parameter. Stop and ask (AskUserQuestion) whether to fall back to the alias or re-pin to a version with shipped workers — never substitute silently.
 
 Scope: the pin changes only which Opus executes Opus stages. Capability floors, effort floors, and which stages route to Opus are unchanged; Sonnet/Haiku/Fable stages are untouched; escalation above Opus still goes to Fable, not another Opus version. Pinned workers ship `medium`, `high`, and `xhigh` efforts but not `low` — the `low` floor (deterministic, validator-backed work) is never Opus territory; if a route ever wants Opus at low, use medium. Gate 2 route listings and the completion report must show the pinned model ID, not the bare word "opus", so the user sees exactly what will run.
 
@@ -68,6 +68,15 @@ Use Explore/cavecrew-investigator subagents (model: haiku or sonnet) for this di
 8. Compare the route with Fable-direct. If delegation lacks a credible advantage for the selected profile, recommend Fable-direct and say why.
 
 Mechanics: spawn via the Agent tool with an explicit `model` parameter (`haiku`, `sonnet`, `opus`; omit = inherit Fable — never omit for a routed stage, with one exception: Opus-pinned workers carry their model in frontmatter and are spawned with no `model` parameter, per Opus Version Pin). The Agent tool has no per-call effort parameter; effort comes from the agent definition, so route effort by choosing `subagent_type`: `fable-router:worker-low`, `fable-router:worker-medium`, `fable-router:worker-high`, or `fable-router:worker-xhigh` (this plugin ships them; model × effort compose freely via the `model` parameter). Workers carry WebSearch/WebFetch, so web-research stages route through them too. Other types still work when their scope fits — `Explore` for codebase search, `caveman:cavecrew-*` for compressed output — but they inherit session effort. Parallel independent stages go in one message. Use `isolation: "worktree"` only when agents mutate files in parallel.
+
+### Skill-Invocation Turns
+
+A turn that invokes a skill (slash command) is a routing target like any other — the skill body is an input to route design (a procedure spec), not grounds for the parent to perform every step inline.
+
+- If the skill fully specifies the procedure and carries a deterministic validator (test-runner exit code, `BUILD SUCCESSFUL` marker, diff shape), route its execution stage to `worker-medium` on `sonnet` (`worker-low` where the low floor holds). The context packet carries the skill body or its path plus the environment contract it needs (required env vars, working directory).
+- The parent keeps result integration and pulls a stage back inline on failure: diagnosis that judges against session context (branch diff, recent change history) is legitimately parent-inline.
+- Mechanical re-runs expected to pass (no code changes since the last green run) are exactly the delegable case — never Fable-direct.
+- Routing policy has one owner: this skill. Do not write routing rules into domain skill documents; when a domain skill needs different routing, change this file.
 
 ## Capability Floors
 
