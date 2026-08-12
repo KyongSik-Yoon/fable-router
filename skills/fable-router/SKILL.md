@@ -63,7 +63,7 @@ Use Explore/cavecrew-investigator subagents (model: haiku or sonnet) for this di
 3. Assign the lowest-cost model that satisfies each remaining stage's capability and risk floor, and the lowest reasoning effort that its ambiguity and consequence allow (see Effort Floors).
 4. The parent Fable is already an active capability — do not duplicate its planning or integration in a subagent unless independent review has explicit value.
 5. Prefer one agent. Add agents only for: independent evidence, disjoint parallel work, deterministic volume, or consequential independent review.
-6. Keep context packets narrow: each subagent gets only its role contract, objective, required evidence (file paths, not dumps), allowed write surface, non-goals, validation command, and output shape.
+6. Keep context packets narrow: each subagent gets only its role contract, objective, required evidence (file paths, not dumps), allowed write surface, non-goals, validation command, and output shape. If the packet spawns the agent with a `name` (promoting it to an addressable teammate), it must also require the worker to report its result with `SendMessage(to: "main")` before finishing, since a teammate's final text is not relayed to the parent.
 7. Escalate on ambiguity, failed validation, conflicting evidence, or higher consequence — cheapest step first: raise effort within the same model (low → medium → high → xhigh) before raising the model (Haiku → Sonnet → Opus → Fable). One escalation retry per stage before pulling the stage back into the parent.
 8. Compare the route with Fable-direct. If delegation lacks a credible advantage for the selected profile, recommend Fable-direct and say why.
 
